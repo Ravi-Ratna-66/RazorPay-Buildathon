@@ -2,29 +2,46 @@ import os
 import json
 import re
 
+import streamlit as st
 from dotenv import load_dotenv
 from groq import Groq
 
 
-load_dotenv()
+# ============================================================
+# API KEY CONFIGURATION
+# ============================================================
 
+load_dotenv()
 
 api_key = os.getenv("GROQ_API_KEY")
 
+# Streamlit Cloud fallback
+if not api_key:
+    try:
+        api_key = st.secrets.get("GROQ_API_KEY")
+    except Exception:
+        api_key = None
 
 if not api_key:
     raise ValueError(
-        "GROQ_API_KEY was not found in the .env file."
+        "GROQ_API_KEY is not configured."
     )
-
 
 client = Groq(
     api_key=api_key
 )
 
 
+# ============================================================
+# MODEL
+# ============================================================
+
 MODEL_NAME = "openai/gpt-oss-120b"
 
+
+# ============================================================
+# JSON CLEANING
+# ============================================================
 
 def clean_json_response(content):
 
@@ -52,9 +69,7 @@ def clean_json_response(content):
     # Try direct JSON parsing
     try:
 
-        return json.loads(
-            content
-        )
+        return json.loads(content)
 
     except json.JSONDecodeError:
 
@@ -81,6 +96,10 @@ def clean_json_response(content):
 
     return None
 
+
+# ============================================================
+# FALLBACK DIAGNOSIS
+# ============================================================
 
 def fallback_diagnosis(
     transaction,
@@ -116,6 +135,10 @@ def fallback_diagnosis(
         "contact_allowed",
         False
     )
+
+    # --------------------------------------------------------
+    # Determine fallback strategy
+    # --------------------------------------------------------
 
     if not contact_allowed:
 
@@ -157,6 +180,9 @@ def fallback_diagnosis(
 
         strategy = "ESCALATE"
 
+    # --------------------------------------------------------
+    # Return fallback result
+    # --------------------------------------------------------
 
     return {
 
@@ -192,6 +218,10 @@ def fallback_diagnosis(
     }
 
 
+# ============================================================
+# DIAGNOSIS AGENT
+# ============================================================
+
 def diagnose_transaction(
     transaction,
     recovery_prediction
@@ -208,6 +238,9 @@ def diagnose_transaction(
         indent=2
     )
 
+    # --------------------------------------------------------
+    # System Prompt
+    # --------------------------------------------------------
 
     system_prompt = """
 You are the Diagnosis Agent for RecoverX.
@@ -268,6 +301,9 @@ Do not include markdown.
 Do not include explanations outside JSON.
 """
 
+    # --------------------------------------------------------
+    # User Prompt
+    # --------------------------------------------------------
 
     user_prompt = f"""
 Analyze this RecoverX transaction.
@@ -283,6 +319,9 @@ Machine Learning Recovery Prediction:
 Return ONLY the JSON object.
 """
 
+    # --------------------------------------------------------
+    # Call Groq
+    # --------------------------------------------------------
 
     try:
 
@@ -310,7 +349,6 @@ Return ONLY the JSON object.
 
         )
 
-
         content = (
             response
             .choices[0]
@@ -318,16 +356,29 @@ Return ONLY the JSON object.
             .content
         )
 
-
         diagnosis = clean_json_response(
             content
         )
 
+        # ----------------------------------------------------
+        # Validate response
+        # ----------------------------------------------------
 
         if diagnosis:
 
-            return diagnosis
+            required_fields = [
+                "diagnosis",
+                "recovery_potential",
+                "key_factors",
+                "recommended_strategy"
+            ]
 
+            if all(
+                field in diagnosis
+                for field in required_fields
+            ):
+
+                return diagnosis
 
     except Exception as error:
 
@@ -336,6 +387,9 @@ Return ONLY the JSON object.
             error
         )
 
+    # --------------------------------------------------------
+    # Fallback
+    # --------------------------------------------------------
 
     print(
         "Diagnosis Agent returned "
@@ -343,14 +397,16 @@ Return ONLY the JSON object.
         "Using deterministic fallback."
     )
 
-
     return fallback_diagnosis(
         transaction,
         recovery_prediction
     )
 
 
-# Test the Diagnosis Agent
+# ============================================================
+# LOCAL TEST
+# ============================================================
+
 if __name__ == "__main__":
 
     test_transaction = {
@@ -400,7 +456,6 @@ if __name__ == "__main__":
             True
     }
 
-
     test_prediction = {
 
         "recovery_probability":
@@ -410,15 +465,17 @@ if __name__ == "__main__":
             "HIGH"
     }
 
-
     result = diagnose_transaction(
         test_transaction,
         test_prediction
     )
 
-
     print(
         "\nRecoverX Diagnosis Agent"
+    )
+
+    print(
+        "========================"
     )
 
     print(
