@@ -143,7 +143,7 @@ def simulate_outcome(
 
         success_probability = 0.0
 
-    # Repeated attempts reduce recovery effectiveness
+    #Repeated attempts reduce recovery effectiveness
     success_probability -= (
         recovery_attempts * 0.05
     )
@@ -178,12 +178,12 @@ def run_simulation():
     print("                 RECOVERX SIMULATOR")
     print("=" * 70)
 
-    # Load dataset
+    #Load dataset
     df = pd.read_csv(
         DATA_PATH
     )
 
-    # Keep only failed and abandoned transactions
+    #Keep only failed and abandoned transactions
     df = df[
         df["payment_status"].isin([
             "failed",
@@ -191,8 +191,7 @@ def run_simulation():
         ])
     ].copy()
 
-    # Remove the original outcome columns
-    # because the simulator will generate its own outcomes
+    # Remove the original outcome columns because the simulator will generate its own outcomes
     original_columns = [
         "recovered",
         "recovered_revenue"
@@ -210,7 +209,7 @@ def run_simulation():
         f"{len(df):,}"
     )
 
-    # Load trained ML model
+    #Load trained ML model
     model = joblib.load(
         MODEL_PATH
     )
@@ -233,7 +232,7 @@ def run_simulation():
 
     X = df[features]
 
-    # Predict recovery probabilities
+    #Predict recovery probabilities
     probabilities = model.predict_proba(
         X
     )[:, 1]
@@ -246,7 +245,7 @@ def run_simulation():
         probabilities * 100
     )
 
-    # Determine recovery actions
+    #Determine recovery actions
     df["recommended_action"] = df.apply(
         lambda row: determine_action(
             float(row["predicted_probability"]),
@@ -258,7 +257,7 @@ def run_simulation():
         axis=1
     )
 
-    # Simulate recovery outcomes
+    #Simulate recovery outcomes
     recovered_results = []
     recovered_revenue_results = []
     success_probability_results = []
@@ -287,7 +286,7 @@ def run_simulation():
             success_probability
         )
 
-    # Store simulator results
+    #Store simulator results
     df["simulated_recovered"] = (
         recovered_results
     )
@@ -300,7 +299,7 @@ def run_simulation():
         success_probability_results
     )
 
-    # Calculate metrics as scalar values
+    #Calculate metrics as scalar values
     total_transactions = int(
         len(df)
     )
@@ -335,13 +334,13 @@ def run_simulation():
 
         revenue_recovery_rate = 0.0
 
-    # Action distribution
+    #Action distribution
     action_counts = (
         df["recommended_action"]
         .value_counts()
     )
 
-    # Print results
+    #Print results
     print("\nSimulation Results")
     print("-" * 70)
 
@@ -377,7 +376,7 @@ def run_simulation():
         action_counts
     )
 
-    # Save results
+    #Save results
     output_path = (
         "data/recovery_simulation.csv"
     )

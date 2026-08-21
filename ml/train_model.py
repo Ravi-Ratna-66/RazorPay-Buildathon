@@ -20,10 +20,10 @@ from sklearn.metrics import (
 )
 
 
-# Load the dataset
+#Load the dataset
 df = pd.read_csv("data/transactions.csv")
 
-# Keep only failed and abandoned transactions
+#Keep only failed and abandoned transactions
 df = df[
     df["payment_status"].isin([
         "failed",
@@ -31,7 +31,7 @@ df = df[
     ])
 ].copy()
 
-# Features available when RecoverX analyzes a transaction
+#Features available when RecoverX analyzes a transaction
 features = [
     "amount",
     "transaction_type",
@@ -53,7 +53,7 @@ target = "recovered"
 X = df[features]
 y = df[target]
 
-# Separate categorical and numerical features
+#Separate categorical and numerical features
 categorical_features = [
     "transaction_type",
     "payment_method",
@@ -72,7 +72,7 @@ numerical_features = [
     "time_since_failure_hours"
 ]
 
-# Preprocessing for categorical features
+#Preprocessing for categorical features
 categorical_pipeline = Pipeline([
     (
         "imputer",
@@ -84,7 +84,7 @@ categorical_pipeline = Pipeline([
     )
 ])
 
-# Preprocessing for numerical features
+#Preprocessing for numerical features
 numerical_pipeline = Pipeline([
     (
         "imputer",
@@ -96,7 +96,7 @@ numerical_pipeline = Pipeline([
     )
 ])
 
-# Combine preprocessing
+#Combine preprocessing
 preprocessor = ColumnTransformer([
     (
         "categorical",
@@ -110,7 +110,7 @@ preprocessor = ColumnTransformer([
     )
 ])
 
-# Split the dataset
+#Split the dataset
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -119,7 +119,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-# Train Logistic Regression
+#Train Logistic Regression
 logistic_model = Pipeline([
     (
         "preprocessor",
@@ -320,7 +320,7 @@ print(
 )
 
 
-# Select the best model
+#Select the best model
 if random_forest_auc > logistic_auc:
 
     best_model = random_forest_model
@@ -334,7 +334,7 @@ else:
     best_auc = logistic_auc
 
 
-# Save the best model
+#Save the best model
 joblib.dump(
     best_model,
     "ml/recovery_model.pkl"

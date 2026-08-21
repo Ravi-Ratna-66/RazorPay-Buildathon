@@ -4,7 +4,7 @@ import random
 from faker import Faker
 from datetime import datetime, timedelta
 
-# Dataset configuration
+#Dataset configuration
 NUM_TRANSACTIONS = 50000
 NUM_CUSTOMERS = 10000
 
@@ -37,7 +37,7 @@ FAILURE_REASONS = [
     "limit_exceeded"
 ]
 
-# Create customer profiles
+#Create customer profiles
 customers = []
 
 for i in range(NUM_CUSTOMERS):
@@ -94,7 +94,7 @@ for i in range(NUM_CUSTOMERS):
 
 customers_df = pd.DataFrame(customers)
 
-# Generate transaction records
+#Generate transaction records
 records = []
 
 start_date = datetime.now() - timedelta(days=365)
@@ -123,7 +123,7 @@ for i in range(NUM_TRANSACTIONS):
         k=1
     )[0]
 
-    # Generate transaction amount
+    #Generate transaction amount
     amount = round(
         np.random.lognormal(
             mean=7.5,
@@ -137,7 +137,7 @@ for i in range(NUM_TRANSACTIONS):
         100000
     )
 
-    # Select payment method
+    #Select payment method
     if random.random() < 0.80:
         payment_method = customer[
             "preferred_payment_method"
@@ -147,14 +147,14 @@ for i in range(NUM_TRANSACTIONS):
             PAYMENT_METHODS
         )
 
-    # Generate payment status
+    #Generate payment status
     payment_status = random.choices(
         ["success", "failed", "abandoned"],
         weights=[0.78, 0.17, 0.05],
         k=1
     )[0]
 
-    # Generate failure reason
+    #Generate failure reason
     if payment_status == "failed":
 
         failure_reason = random.choices(
@@ -178,7 +178,7 @@ for i in range(NUM_TRANSACTIONS):
 
         failure_reason = "none"
 
-    # Generate subscription status
+    #Generate subscription status
     if transaction_type == "subscription":
 
         if payment_status == "failed":
@@ -194,7 +194,7 @@ for i in range(NUM_TRANSACTIONS):
 
         subscription_status = "not_applicable"
 
-    # Generate cart value
+    #Generate cart value
     if transaction_type == "checkout":
 
         cart_value = round(
@@ -209,7 +209,7 @@ for i in range(NUM_TRANSACTIONS):
 
         cart_value = 0
 
-    # Time since failure
+    #Time since failure
     if payment_status in [
         "failed",
         "abandoned"
@@ -224,7 +224,7 @@ for i in range(NUM_TRANSACTIONS):
 
         time_since_failure_hours = 0
 
-    # Previous recovery attempts
+    #Previous recovery attempts
     if payment_status in [
         "failed",
         "abandoned"
@@ -245,14 +245,14 @@ for i in range(NUM_TRANSACTIONS):
 
         recovery_attempts = 0
 
-    # Customer contact permission
+    #Customer contact permission
     contact_allowed = random.choices(
         [True, False],
         weights=[0.94, 0.06],
         k=1
     )[0]
 
-    # Calculate recovery probability
+    #Calculate recovery probability
     if payment_status in [
         "failed",
         "abandoned"
@@ -260,7 +260,7 @@ for i in range(NUM_TRANSACTIONS):
 
         recovery_score = -1.5
 
-        # Customer history
+        #Customer history
         recovery_score += (
             min(
                 customer[
@@ -279,14 +279,14 @@ for i in range(NUM_TRANSACTIONS):
             ) * 0.15
         )
 
-        # Customer loyalty
+        #Customer loyalty
         recovery_score += (
             customer[
                 "customer_tenure_years"
             ] * 0.20
         )
 
-        # Failure reason
+        #Failure reason
         if failure_reason == "network_error":
             recovery_score += 0.80
 
@@ -308,12 +308,12 @@ for i in range(NUM_TRANSACTIONS):
         elif failure_reason == "checkout_abandoned":
             recovery_score += 0.25
 
-        # Recovery attempts
+        #Recovery attempts
         recovery_score -= (
             recovery_attempts * 0.35
         )
 
-        # Time since failure
+        #Time since failure
         if time_since_failure_hours <= 6:
             recovery_score += 0.40
 
@@ -323,7 +323,7 @@ for i in range(NUM_TRANSACTIONS):
         else:
             recovery_score -= 0.20
 
-        # Transaction amount
+        #Transaction amount
         if amount <= 5000:
             recovery_score += 0.30
 
@@ -333,7 +333,7 @@ for i in range(NUM_TRANSACTIONS):
         elif amount > 50000:
             recovery_score -= 0.45
 
-        # High-value loyal customers
+        #High-value loyal customers
         if (
             customer[
                 "customer_lifetime_value"
@@ -346,7 +346,7 @@ for i in range(NUM_TRANSACTIONS):
 
             recovery_score += 0.40
 
-        # Convert score into probability
+        #Convert score into probability
         recovery_probability = (
             1 /
             (
@@ -357,7 +357,7 @@ for i in range(NUM_TRANSACTIONS):
             )
         )
 
-        # Add small random variation
+        #Add small random variation
         recovery_probability += np.random.normal(
             0,
             0.03
@@ -373,7 +373,7 @@ for i in range(NUM_TRANSACTIONS):
 
         recovery_probability = 0.0
 
-    # Generate recovery outcome
+    #Generate recovery outcome
     if payment_status in [
         "failed",
         "abandoned"
@@ -388,7 +388,7 @@ for i in range(NUM_TRANSACTIONS):
 
         recovered = 0
 
-    # Revenue at risk
+    #Revenue at risk
     if payment_status in [
         "failed",
         "abandoned"
@@ -400,7 +400,7 @@ for i in range(NUM_TRANSACTIONS):
 
         revenue_at_risk = 0
 
-    # Recovered revenue
+    #Recovered revenue
     if recovered == 1:
 
         recovered_revenue = amount
@@ -490,15 +490,15 @@ for i in range(NUM_TRANSACTIONS):
     })
 
 
-# Create DataFrame
+#Create DataFrame
 df = pd.DataFrame(records)
 
-# Sort transactions chronologically
+#Sort transactions chronologically
 df = df.sort_values(
     "transaction_date"
 ).reset_index(drop=True)
 
-# Save the dataset
+#Save the dataset
 output_path = "data/transactions.csv"
 
 df.to_csv(

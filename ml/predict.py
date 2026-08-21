@@ -5,7 +5,7 @@ import joblib
 MODEL_PATH = "ml/recovery_model.pkl"
 
 
-# Load the trained model
+#Load the trained model
 model = joblib.load(MODEL_PATH)
 
 
@@ -15,17 +15,17 @@ def predict_recovery(transaction):
     transaction can be recovered.
     """
 
-    # Convert input transaction into a DataFrame
+    #Convert input transaction into a DataFrame
     data = pd.DataFrame([transaction])
 
-    # Get recovery probability
+    #Get recovery probability
     probability = model.predict_proba(
         data
     )[0][1]
 
     probability_percentage = probability * 100
 
-    # Assign a recovery level
+    #Assign a recovery level
     if probability >= 0.80:
         recovery_level = "VERY HIGH"
 
@@ -50,7 +50,7 @@ def predict_recovery(transaction):
     }
 
 
-# Test transaction
+#Test transaction
 if __name__ == "__main__":
 
     test_transaction = {
@@ -99,7 +99,6 @@ if __name__ == "__main__":
     )
 
     print("\nRecoverX Prediction")
-    print("-------------------")
 
     print(
         f"Recovery Probability: "

@@ -6,18 +6,21 @@ import plotly.express as px
 import streamlit as st
 
 
-# Add project root to Python path
-PROJECT_ROOT = Path(
-    __file__
-).resolve().parent.parent
+# ============================================================
+# PROJECT PATH
+# ============================================================
 
-sys.path.insert(
-    0,
-    str(PROJECT_ROOT)
-)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Make project root available for imports
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 
-# Import RecoverX components
+# ============================================================
+# RECOVERX IMPORTS
+# ============================================================
+
 from ml.predict import predict_recovery
 
 from agents.diagnosis_agent import (
@@ -37,21 +40,25 @@ from agents.action_executor import (
 )
 
 
-# File paths
+# ============================================================
+# FILE PATHS
+# ============================================================
+
+DATA_DIR = PROJECT_ROOT / "data"
+
 SIMULATION_PATH = (
-    PROJECT_ROOT
-    / "data"
-    / "recovery_simulation.csv"
+    DATA_DIR / "recovery_simulation.csv"
 )
 
 BASELINE_PATH = (
-    PROJECT_ROOT
-    / "data"
-    / "baseline_comparison.csv"
+    DATA_DIR / "baseline_comparison.csv"
 )
 
 
-# Page configuration
+# ============================================================
+# PAGE CONFIGURATION
+# ============================================================
+
 st.set_page_config(
     page_title="RecoverX",
     page_icon="💳",
@@ -59,9 +66,30 @@ st.set_page_config(
 )
 
 
-# Load data
+# ============================================================
+# DATA LOADING
+# ============================================================
+
 @st.cache_data
 def load_simulation_data():
+
+    if not SIMULATION_PATH.exists():
+
+        st.error(
+            "Simulation data file was not found."
+        )
+
+        st.code(
+            str(SIMULATION_PATH)
+        )
+
+        st.info(
+            "Make sure "
+            "'data/recovery_simulation.csv' "
+            "is committed to your GitHub repository."
+        )
+
+        st.stop()
 
     return pd.read_csv(
         SIMULATION_PATH
@@ -71,19 +99,39 @@ def load_simulation_data():
 @st.cache_data
 def load_baseline_data():
 
+    if not BASELINE_PATH.exists():
+
+        st.error(
+            "Baseline comparison file was not found."
+        )
+
+        st.code(
+            str(BASELINE_PATH)
+        )
+
+        st.info(
+            "Make sure "
+            "'data/baseline_comparison.csv' "
+            "is committed to your GitHub repository."
+        )
+
+        st.stop()
+
     return pd.read_csv(
         BASELINE_PATH
     )
 
+
+# Load datasets
 
 df = load_simulation_data()
 
 baseline_df = load_baseline_data()
 
 
-# --------------------------------------------------
-# Header
-# --------------------------------------------------
+# ============================================================
+# HEADER
+# ============================================================
 
 st.title("RecoverX")
 
@@ -99,9 +147,9 @@ st.write(
 st.divider()
 
 
-# --------------------------------------------------
-# Overview Metrics
-# --------------------------------------------------
+# ============================================================
+# OVERVIEW METRICS
+# ============================================================
 
 transactions = len(df)
 
@@ -121,6 +169,9 @@ recovered_transactions = int(
     ].sum()
 )
 
+
+# Revenue recovery rate
+
 if revenue_at_risk > 0:
 
     revenue_recovery_rate = (
@@ -133,6 +184,8 @@ else:
 
     revenue_recovery_rate = 0.0
 
+
+# Transaction recovery rate
 
 if transactions > 0:
 
@@ -147,7 +200,9 @@ else:
     transaction_recovery_rate = 0.0
 
 
-# KPI cards
+# ============================================================
+# KPI CARDS
+# ============================================================
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -155,12 +210,20 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
 
     st.metric(
+        "Transactions",
+        f"{transactions:,}"
+    )
+
+
+with col2:
+
+    st.metric(
         "Revenue at Risk",
         f"₹{revenue_at_risk / 10000000:.2f} Cr"
     )
 
 
-with col2:
+with col3:
 
     st.metric(
         "Recovered Revenue",
@@ -168,25 +231,17 @@ with col2:
     )
 
 
-with col3:
+with col4:
 
     st.metric(
-        "Revenue Recovery",
+        "Recovery Rate",
         f"{revenue_recovery_rate:.2f}%"
     )
 
 
-with col4:
-
-    st.metric(
-        "Transaction Recovery",
-        f"{transaction_recovery_rate:.2f}%"
-    )
-
-
-# --------------------------------------------------
-# Recovery Analysis
-# --------------------------------------------------
+# ============================================================
+# RECOVERY ANALYSIS
+# ============================================================
 
 st.divider()
 
@@ -195,17 +250,19 @@ st.header(
 )
 
 
-# Failure reason data
+# ------------------------------------------------------------
+# Recovery by Failure Reason
+# ------------------------------------------------------------
 
 failure_df = (
-    df.groupby(
-        "failure_reason"
-    )
+    df
+    .groupby("failure_reason")
     .agg(
         revenue_at_risk=(
             "amount",
             "sum"
         ),
+
         recovered_revenue=(
             "simulated_recovered_revenue",
             "sum"
@@ -216,28 +273,26 @@ failure_df = (
 
 
 failure_df["recovery_rate"] = (
-    failure_df[
-        "recovered_revenue"
-    ]
+    failure_df["recovered_revenue"]
     /
-    failure_df[
-        "revenue_at_risk"
-    ]
+    failure_df["revenue_at_risk"]
     * 100
 )
 
 
-# Payment method data
+# ------------------------------------------------------------
+# Recovery by Payment Method
+# ------------------------------------------------------------
 
 payment_df = (
-    df.groupby(
-        "payment_method"
-    )
+    df
+    .groupby("payment_method")
     .agg(
         revenue_at_risk=(
             "amount",
             "sum"
         ),
+
         recovered_revenue=(
             "simulated_recovered_revenue",
             "sum"
@@ -248,18 +303,16 @@ payment_df = (
 
 
 payment_df["recovery_rate"] = (
-    payment_df[
-        "recovered_revenue"
-    ]
+    payment_df["recovered_revenue"]
     /
-    payment_df[
-        "revenue_at_risk"
-    ]
+    payment_df["revenue_at_risk"]
     * 100
 )
 
 
-# Two charts side by side
+# ------------------------------------------------------------
+# Charts
+# ------------------------------------------------------------
 
 col1, col2 = st.columns(2)
 
@@ -320,9 +373,9 @@ with col2:
     )
 
 
-# --------------------------------------------------
-# Recovery Actions
-# --------------------------------------------------
+# ============================================================
+# RECOVERY ACTIONS
+# ============================================================
 
 st.subheader(
     "Recovery Actions"
@@ -370,9 +423,9 @@ st.plotly_chart(
 )
 
 
-# --------------------------------------------------
-# Baseline vs RecoverX
-# --------------------------------------------------
+# ============================================================
+# BASELINE VS RECOVERX
+# ============================================================
 
 st.divider()
 
@@ -493,9 +546,9 @@ st.caption(
 )
 
 
-# --------------------------------------------------
-# Live RecoverX Agent
-# --------------------------------------------------
+# ============================================================
+# LIVE RECOVERX AGENT
+# ============================================================
 
 st.divider()
 
@@ -509,7 +562,9 @@ st.write(
 )
 
 
-# Only failed and abandoned transactions
+# ============================================================
+# FAILED / ABANDONED TRANSACTIONS
+# ============================================================
 
 failed_transactions = df[
     df[
@@ -523,7 +578,19 @@ failed_transactions = df[
 ].copy()
 
 
-# Transaction selection
+if failed_transactions.empty:
+
+    st.warning(
+        "No failed or abandoned transactions "
+        "are available."
+    )
+
+    st.stop()
+
+
+# ============================================================
+# TRANSACTION SELECTION
+# ============================================================
 
 transaction_options = (
     failed_transactions[
@@ -542,21 +609,33 @@ selected_transaction_id = st.selectbox(
 
 # Find selected transaction
 
-selected_row = (
+selected_rows = failed_transactions[
     failed_transactions[
-        failed_transactions[
-            "transaction_id"
-        ].astype(str)
-        ==
-        selected_transaction_id
-    ]
+        "transaction_id"
+    ].astype(str)
+    ==
+    selected_transaction_id
+]
+
+
+if selected_rows.empty:
+
+    st.error(
+        "Selected transaction could not be found."
+    )
+
+    st.stop()
+
+
+selected_row = (
+    selected_rows
     .iloc[0]
 )
 
 
-# --------------------------------------------------
-# Selected Transaction Information
-# --------------------------------------------------
+# ============================================================
+# TRANSACTION DETAILS
+# ============================================================
 
 st.subheader(
     "Transaction Details"
@@ -610,9 +689,9 @@ with col4:
     )
 
 
-# --------------------------------------------------
-# Run Agentic Workflow
-# --------------------------------------------------
+# ============================================================
+# RUN AGENTIC WORKFLOW
+# ============================================================
 
 if st.button(
     "Analyze Transaction",
@@ -626,9 +705,9 @@ if st.button(
     )
 
 
-    # ----------------------------------------------
-    # Step 1: ML Prediction
-    # ----------------------------------------------
+    # ========================================================
+    # STEP 1 - ML PREDICTION
+    # ========================================================
 
     st.divider()
 
@@ -677,9 +756,9 @@ if st.button(
         )
 
 
-    # ----------------------------------------------
-    # Step 2: Diagnosis Agent
-    # ----------------------------------------------
+    # ========================================================
+    # STEP 2 - DIAGNOSIS AGENT
+    # ========================================================
 
     st.subheader(
         "2. Diagnosis Agent"
@@ -701,9 +780,9 @@ if st.button(
     )
 
 
-    # ----------------------------------------------
-    # Step 3: Decision Agent
-    # ----------------------------------------------
+    # ========================================================
+    # STEP 3 - DECISION AGENT
+    # ========================================================
 
     st.subheader(
         "3. Decision Agent"
@@ -726,9 +805,9 @@ if st.button(
     )
 
 
-    # ----------------------------------------------
-    # Step 4: Guardrail Engine
-    # ----------------------------------------------
+    # ========================================================
+    # STEP 4 - GUARDRAILS
+    # ========================================================
 
     st.subheader(
         "4. Guardrail Engine"
@@ -767,9 +846,9 @@ if st.button(
     )
 
 
-    # ----------------------------------------------
-    # Step 5: Action Executor
-    # ----------------------------------------------
+    # ========================================================
+    # STEP 5 - ACTION EXECUTOR
+    # ========================================================
 
     st.subheader(
         "5. Action Executor"
@@ -813,9 +892,9 @@ if st.button(
     )
 
 
-    # ----------------------------------------------
-    # Final Result
-    # ----------------------------------------------
+    # ========================================================
+    # FINAL RESULT
+    # ========================================================
 
     st.divider()
 
@@ -854,8 +933,6 @@ if st.button(
             status
         )
 
-
-    # Final explanation
 
     st.info(
         "RecoverX completed the workflow: "

@@ -96,17 +96,17 @@ def main():
         df["amount"].sum()
     )
 
-    # Baseline
+    #Baseline
     df = simulate_baseline(
         df
     )
 
-    # Naive strategy
+    #Naive strategy
     df = simulate_naive_strategy(
         df
     )
 
-    # RecoverX results
+    #RecoverX results
     recoverx_revenue = float(
         df[
             "simulated_recovered_revenue"
@@ -131,7 +131,7 @@ def main():
         * 100
     )
 
-    # Baseline results
+    #Baseline results
     baseline_revenue = float(
         df[
             "baseline_recovered_revenue"
@@ -156,7 +156,7 @@ def main():
         * 100
     )
 
-    # Naive results
+    #Naive results
     naive_revenue = float(
         df[
             "naive_recovered_revenue"
@@ -181,7 +181,7 @@ def main():
         * 100
     )
 
-    # Revenue uplift
+    #Revenue uplift
     revenue_uplift_vs_naive = (
         recoverx_revenue
         - naive_revenue
@@ -196,7 +196,6 @@ def main():
         * 100
     )
 
-    # Print comparison
     print("\nComparison")
     print("-" * 70)
 
@@ -250,7 +249,7 @@ def main():
         f"{revenue_uplift_percentage:.2f}%"
     )
 
-    # Save comparison dataset
+    #Save comparison dataset
     output_path = (
         "data/baseline_comparison.csv"
     )

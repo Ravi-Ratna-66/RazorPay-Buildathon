@@ -25,7 +25,7 @@ def validate_action(
 
     reasons = []
 
-    # Check whether the action is valid
+    #Check whether the action is valid
     if action not in ALLOWED_ACTIONS:
 
         return {
@@ -36,7 +36,7 @@ def validate_action(
             ]
         }
 
-    # Check customer contact permission
+    #Check customer contact permission
     if not transaction.get(
         "contact_allowed",
         False
@@ -50,7 +50,7 @@ def validate_action(
             ]
         }
 
-    # Check recovery attempts
+    #Check recovery attempts
     recovery_attempts = transaction.get(
         "recovery_attempts",
         0
@@ -66,7 +66,7 @@ def validate_action(
             ]
         }
 
-    # Check transaction amount
+    #Check transaction amount
     amount = transaction.get(
         "amount",
         0
@@ -88,7 +88,7 @@ def validate_action(
                 ]
             }
 
-    # Check discount policy
+    #Check discount policy
     if action == "DISCOUNT":
 
         if amount > 20000:
@@ -102,7 +102,7 @@ def validate_action(
                 ]
             }
 
-    # Check ML recovery probability
+    #Check ML recovery probability
     probability = recovery_prediction.get(
         "recovery_probability",
         0
@@ -162,6 +162,5 @@ if __name__ == "__main__":
     )
 
     print("\nRecoverX Guardrail Engine")
-    print("=========================")
 
     print(result)

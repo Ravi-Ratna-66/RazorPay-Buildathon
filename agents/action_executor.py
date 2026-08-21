@@ -24,7 +24,7 @@ def execute_action(
         "amount",
         0
     )
-    timestamp = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat()
+    timestamp = datetime.now( ZoneInfo("Asia/Kolkata")).isoformat()
 
     if action == "RETRY":
 
