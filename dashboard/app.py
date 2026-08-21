@@ -617,7 +617,7 @@ with col4:
 if st.button(
     "Analyze Transaction",
     type="primary",
-    use_container_width=True
+    width="stretch"
 ):
 
     transaction = (
