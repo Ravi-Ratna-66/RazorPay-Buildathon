@@ -4,3 +4,9 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .DS_Store
+.pytest_cache/
+*.log
+
+data/transactions.csv
+data/recovery_simulation.csv
+data/baseline_comparison.csv
