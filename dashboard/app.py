@@ -290,7 +290,7 @@ with col1:
 
     st.plotly_chart(
         fig_failure,
-        use_container_width=True
+        width="stretch"
     )
 
 
@@ -316,7 +316,7 @@ with col2:
 
     st.plotly_chart(
         fig_payment,
-        use_container_width=True
+        width="stretch"
     )
 
 
@@ -366,7 +366,7 @@ fig_actions.update_layout(
 
 st.plotly_chart(
     fig_actions,
-    use_container_width=True
+    width="stretch"
 )
 
 
@@ -455,7 +455,7 @@ fig_comparison = px.bar(
 
 st.plotly_chart(
     fig_comparison,
-    use_container_width=True
+    width="stretch"
 )
 
 
